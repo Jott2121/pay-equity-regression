@@ -123,10 +123,30 @@ All relationships are tunable via the `GapConfig` dataclass. Set gap to zero and
 
 ---
 
-## Run it yourself
+## Interactive dashboard
+
+A multi-page Streamlit app ships with the repo:
+
+| Page | Purpose |
+|---|---|
+| **Home** | Headline KPIs + full audit report; configure workforce size and injected gaps live |
+| **🔍 Gap Explorer** | Drill down by level, function, location; residual distribution |
+| **💰 Remediation Planner** | Employee-level shortfall list + budget-aware funding curve (what does $X million actually cover?) |
 
 ```bash
 pip install -r requirements.txt
+streamlit run app/streamlit_app.py
+```
+
+**Tableau / Power BI users:** generate Tableau-ready CSVs:
+```bash
+python -m src.export_tableau  # writes tableau/workforce_with_residuals.csv + tableau/gap_by_segment.csv
+```
+Then follow [docs/TABLEAU.md](docs/TABLEAU.md) for the recipe to build five dashboard views.
+
+## Run the core audit scripts
+
+```bash
 python -m src.audit         # runs audit, prints report
 python -m src.visualize     # regenerates the visualizations
 jupyter lab notebooks/01_equity_audit.ipynb
