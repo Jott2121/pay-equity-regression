@@ -1,12 +1,8 @@
 # Compensation Equity Analysis
 
-Regression-based pay equity audit — the methodology used by major comp consulting firms (Mercer, WTW, Aon) for annual pay reviews. Identifies pay variation associated with gender or race **after** controlling for legitimate drivers (level, function, location, tenure, experience, performance, management status).
+Enterprise compensation equity analytics and remediation planning. Regression-based pay audit following the methodology used by Mercer, WTW, and Aon — isolates unexplained pay variation associated with gender or race after controlling for legitimate drivers (level, function, location, tenure, experience, performance, management status).
 
-**Built by a former Fortune 500 talent acquisition leader applying statistical methods to one of HR's highest-stakes problems.**
-
-### 🚀 [Live demo: compensation-equity-jotterson.streamlit.app](https://compensation-equity-jotterson.streamlit.app/)
-
-Configure the simulated workforce live and watch the audit recover the injected pay gap in real time.
+**[Live dashboard →](https://compensation-equity-jotterson.streamlit.app/)** (no install required)
 
 ![Raw vs adjusted gender gap](docs/raw_vs_adjusted_gap.png)
 
@@ -207,6 +203,63 @@ jupyter lab notebooks/01_equity_audit.ipynb
 
 ---
 
+## Enterprise deployment
+
+This project is structured as a decision-support tool, not a production system. The notes below document what would change in an enterprise rollout.
+
+### Source system mapping
+
+| Feature category | Production source |
+|---|---|
+| Base salary, bonus, total comp | HRIS compensation tables (Workday / SAP SuccessFactors Compensation) |
+| Job level, function, business unit | HRIS job architecture + position management |
+| Location and cost-of-labor | HRIS location data joined with comp benchmarking (Radford / Mercer / Pearl Meyer) |
+| Performance rating | HRIS `Performance_Review` joined with calibrated final rating |
+| Demographic attributes (gender, race) | HRIS + self-ID records, subject to legal permissions |
+| Years at company, years experience | HRIS Worker record + prior-employment dates |
+
+### Data quality checks
+
+- **Required fields non-null** on salary, level, function, and location
+- **Duplicate detection** on employee ID across integration refreshes
+- **Job level canonicalization** — the single biggest data-quality issue in real comp-equity work. Free-text job titles must be mapped to a canonical level before regression.
+- **Business unit consolidation** — subsidiary / historical BU names merged
+- **Outlier handling on salary** — below minimum wage or above executive bands quarantined
+- **Refresh cadence**: full refresh after each comp cycle; ad-hoc refresh after acquisitions or RIFs
+
+### Governance and security
+
+- **Role-based access**: Total Rewards sees full audit output; HRBPs see their BU aggregates only; managers see no individual-level equity data. Legal and HR leadership see all.
+- **PII handling**: the employee-level shortfall list contains salary and demographic attributes — the most sensitive HR data an employer holds. Access is logged, and exports require an additional approval step.
+- **Auditability**: every audit run records the input data snapshot, regression specification, scenario configuration, and operator. Reproducibility is a regulatory requirement in many jurisdictions.
+- **Model explainability**: regression coefficients and residuals must be directly inspectable. Any more-opaque method (neural net, gradient-boosted tree) is inappropriate here.
+
+### Model monitoring
+
+- **Recalibration**: rerun the audit after each comp cycle (typically twice per year). Track gap trajectory quarter-over-quarter.
+- **Driver stability**: if R-squared on the legitimate-drivers model drops meaningfully, investigate before interpreting the residual gap. Low R-squared means the residual is noisy, not necessarily discriminatory.
+- **Intersectional follow-up**: overall gender or race gap numbers hide variance. Intersectional analyses (women of color, for example) require larger samples and separate reporting.
+- **Change log**: every change to the legitimate-drivers list requires Legal sign-off and a written justification, logged permanently.
+
+### Legal review points
+
+- **"Legitimate drivers" are a legal determination, not an analytical one.** Each control variable (level, function, location, tenure, experience, performance, management status) must be approved by Legal for use as a legitimate driver. If any of those variables are themselves correlated with protected class (e.g. women systematically under-leveled), the gap hides inside them — a legal risk separate from the pay gap itself.
+- **Remediation allocation** is not purely statistical. Legal, HR, and Total Rewards jointly review each employee remediation recommendation.
+- **Regulatory filings**: EU Pay Transparency Directive (effective 2026), UK Equality Act, California SB-1162, NYC Pay Transparency Law, Illinois Equal Pay Act — each has distinct reporting and methodology requirements. One audit cannot cover all; jurisdiction-specific adaptations are required.
+
+### User roles
+
+| Role | Permitted use |
+|---|---|
+| Total Rewards | Own the audit methodology, coordinate remediation, file regulatory reports |
+| Legal / Employment Law | Approve legitimate-driver definitions, review individual remediation decisions |
+| HR Business Partners | See their BU's aggregate gap; participate in remediation planning for their population |
+| People Analytics | Run the audit, maintain the model, monitor drift |
+| Finance | Approve remediation budget |
+| Executives | Consume enterprise and BU-level summaries; approve cross-portfolio remediation decisions |
+
+---
+
 ## What a serious HR reviewer will push back on
 
 I've flagged these myself inside the notebook, but they deserve their own section because they're the conversations any real audit actually lives and dies on:
@@ -223,9 +276,10 @@ I've flagged these myself inside the notebook, but they deserve their own sectio
 
 ## About
 
-Built by **Jeff Otterson** — talent acquisition leader with Fortune 500 experience at Amazon and Oracle. Building a portfolio of people analytics projects applying modern statistical methods and ML to the operational problems I've seen firsthand.
+Part of a People Analytics portfolio covering workforce planning, recruiting, compensation equity, and retention. Companion repositories:
 
-- **Companion project**: [hr-attrition-predictor](https://github.com/Jott2121/hr-attrition-predictor)
-- **MeritForge AI**: [meritforgeai.com](https://www.meritforgeai.com) — free AI career tools
+- [workforce-planning-demand-forecast](https://github.com/Jott2121/workforce-planning-demand-forecast) — strategic workforce planning and recruiter capacity
+- [hiring-funnel-analytics](https://github.com/Jott2121/hiring-funnel-analytics) — recruiting funnel performance and bias monitoring
+- [hr-attrition-predictor](https://github.com/Jott2121/hr-attrition-predictor) — responsible retention risk modeling
 
-MIT licensed.
+Maintainer: [Jeff Otterson](https://github.com/Jott2121). Libraries: `statsmodels`, `pandas`, `streamlit`, `plotly`. MIT licensed.
