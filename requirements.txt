@@ -4,4 +4,6 @@ scikit-learn>=1.4
 statsmodels>=0.14
 matplotlib>=3.8
 seaborn>=0.13
+streamlit>=1.30
+plotly>=5.18
 jupyter>=1.0
