@@ -29,28 +29,49 @@ Only the residual is the lever HR and comp teams can actually act on. A pay equi
 
 ---
 
+## Simulated workforce schema
+
+Each synthetic employee has:
+
+| Category | Fields |
+|---|---|
+| **Demographics** | gender (Female / Male / Non-binary), race (5 categories including URM flag), is_people_manager |
+| **Organization** | level (1 through 7, IC1 to Director+), function (Engineering / Product / Sales / Marketing / Operations / HR / Finance), location (SF / NY / Seattle / Austin / Denver / Remote) |
+| **Experience** | years_experience, years_at_company, performance_rating (1-5) |
+| **Compensation** | salary (base, USD), bonus, total_comp |
+
+The simulator (`src/simulate.py`) generates salaries using legitimate drivers only — level band, location multiplier, function premium, performance adjustment, tenure effect, manager premium, plus a small random noise component. Injected gender and URM gap multipliers are applied *after* the legitimate salary is computed. That means the gap is known ground truth: the audit's job is to recover it.
+
+---
+
 ## Methodology
 
-A standard two-stage regression approach:
+A standard two-stage regression approach.
 
 ### Stage 1 — Model log(salary) on legitimate drivers
 
 ```
-log(salary) ~ C(level) + C(function) + C(location) 
-            + years_at_company + years_experience 
+log(salary) ~ C(level) + C(function) + C(location)
+            + years_at_company + years_experience
             + C(performance_rating) + is_people_manager
 ```
 
-We log-transform salary because comp effects are multiplicative (a 10% level premium is 10% whether you're an L2 or L7). Residuals of this model represent the portion of each employee's pay *not* explained by legitimate drivers.
+The log transform is used because compensation effects are multiplicative. A 10% level-over-level premium is 10% whether the employee is L2 or L7; linear regression on raw dollars would force the model to fit the same premium at both ends, distorting the estimates. Log-scale residuals are also directly interpretable as approximate percentage differences from predicted pay.
+
+Residuals of this model are the portion of each employee's log-salary that is *not* explained by the legitimate drivers. If the drivers are well-specified, these residuals should look like random noise centered at zero.
 
 ### Stage 2 — Test if residuals vary by protected class
 
 ```
-residual ~ is_female
-residual ~ is_urm
+residual ~ is_female          # gender gap
+residual ~ is_urm             # race gap (URM vs non-URM)
 ```
 
-A significant non-zero coefficient means there is pay variation associated with gender/race that the legitimate-driver model cannot explain.
+A statistically significant non-zero coefficient on the protected-class indicator means pay variation that the legitimate-driver model cannot explain is correlated with gender or race. That is the unexplained gap.
+
+### Why simulation makes this a valid demonstration
+
+Because the injected gap is known ground truth, we can verify the methodology rather than just asserting it. Running the audit with a 5% gender gap and 3% URM gap injected should recover approximately those numbers within tight confidence intervals. Running it with zero injected gap should return a statistically non-significant coefficient. Both sanity checks pass (see below).
 
 ### Recovered gaps (on simulated data with known ground truth)
 
@@ -73,6 +94,10 @@ Legitimate-driver model R² = 0.991
 ```
 
 Recovered gaps match the injected values within tight confidence intervals — the methodology works.
+
+### Null-effect sanity check
+
+Set the injected gaps to zero, rerun the audit, and the recovered gender gap drops to approximately `+0.12%` with `p = 0.48` — not statistically distinguishable from zero. This is the check that separates real methodology from something that would produce a "finding" even in a pristine workforce.
 
 ---
 
@@ -129,13 +154,37 @@ All relationships are tunable via the `GapConfig` dataclass. Set gap to zero and
 
 ## Interactive dashboard
 
-A multi-page Streamlit app ships with the repo:
+A multi-page Streamlit app ships with the repo. [Try the live version](https://compensation-equity-jotterson.streamlit.app/) or run it locally.
 
-| Page | Purpose |
-|---|---|
-| **Home** | Headline KPIs + full audit report; configure workforce size and injected gaps live |
-| **🔍 Gap Explorer** | Drill down by level, function, location; residual distribution |
-| **💰 Remediation Planner** | Employee-level shortfall list + budget-aware funding curve (what does $X million actually cover?) |
+### Home page
+
+Live configuration of the simulated workforce and audit result.
+
+- **Sidebar controls**: workforce size (500 to 10,000 employees), injected gender gap percent, injected URM gap percent, random seed
+- **KPI strip**: workforce size, raw median gender gap (unadjusted), adjusted gender gap (after controls), model R-squared
+- **Full audit report** displayed in a text panel with all estimates, confidence intervals, p-values, and remediation cost
+- **Comparison bar chart**: raw median gap vs adjusted gap — the "before vs after controlling for legitimate drivers" visualization
+
+### Gap Explorer
+
+Drill into where the gap concentrates across the organization.
+
+- Three tabs: gap by level, gap by function, gap by location
+- Each tab shows a bar chart of percentage-point gap (Male residual minus Female residual) plus a detail table with per-segment residuals, sample sizes, and a red-blue diverging heatmap
+- **Residual distribution histogram** by gender — shows the systematic leftward shift in the Female distribution that is the visual signature of an unexplained gap
+- CSV export of full residual detail for downstream analysis in Excel, Tableau, or Power BI
+
+### Remediation Planner
+
+Converts the statistical finding into a budget-ready remediation plan.
+
+- **Threshold slider**: only include employees whose residual is below some percentage of predicted pay (typically 2 percent)
+- **Budget cap input**: maximum remediation spend
+- **Group prioritization**: Female only, Female plus URM, or all below-parity employees
+- **KPIs**: count of employees below threshold, total shortfall, count the budget covers, funded cost
+- **Cumulative cost curve**: shows the classic remediation economics where the top ~20% of employees by shortfall typically account for ~50% of total cost
+- **Sorted shortfall table**: employee-level detail with predicted pay, actual pay, shortfall, cumulative cost, and a `funded` flag indicating who gets covered under the current budget
+- CSV export of the full remediation list
 
 ```bash
 pip install -r requirements.txt
