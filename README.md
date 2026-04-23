@@ -4,6 +4,10 @@ Regression-based pay equity audit — the methodology used by major comp consult
 
 **Built by a former Fortune 500 talent acquisition leader applying statistical methods to one of HR's highest-stakes problems.**
 
+### 🚀 [Live demo: compensation-equity-jotterson.streamlit.app](https://compensation-equity-jotterson.streamlit.app/)
+
+Configure the simulated workforce live and watch the audit recover the injected pay gap in real time.
+
 ![Raw vs adjusted gender gap](docs/raw_vs_adjusted_gap.png)
 
 ---
