@@ -1,10 +1,10 @@
-# Compensation Equity Analysis
+# Pay Equity Regression — OLS Compensation Audit
 
-![CI](https://github.com/Jott2121/compensation-equity-analysis/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/Jott2121/pay-equity-regression/actions/workflows/ci.yml/badge.svg)
 
-Enterprise compensation equity analytics and remediation planning. Regression-based pay audit following the methodology used by Mercer, WTW, and Aon — isolates unexplained pay variation associated with gender or race after controlling for legitimate drivers (level, function, location, tenure, experience, performance, management status).
+A two-stage OLS regression that isolates the *unexplained* portion of a pay gap: model log(salary) on legitimate drivers (level, function, location, tenure, experience, performance, management status), then test whether the residuals vary by protected class. Built with `statsmodels`, validated against known ground truth via simulation.
 
-**[Live dashboard →](https://compensation-equity-jotterson.streamlit.app/)** (no install required)
+**Applied to compensation equity:** an enterprise pay audit and remediation planner following the methodology used by Mercer, WTW, and Aon — isolates unexplained pay variation associated with gender or race after controlling for legitimate drivers, then converts the finding into a budget-ready remediation plan.
 
 ![Raw vs adjusted gender gap](docs/raw_vs_adjusted_gap.png)
 
@@ -152,7 +152,7 @@ All relationships are tunable via the `GapConfig` dataclass. Set gap to zero and
 
 ## Interactive dashboard
 
-A multi-page Streamlit app ships with the repo. [Try the live version](https://compensation-equity-jotterson.streamlit.app/) or run it locally.
+A multi-page Streamlit app ships with the repo. Run it locally with the commands below.
 
 ### Home page
 
@@ -281,7 +281,7 @@ I've flagged these myself inside the notebook, but they deserve their own sectio
 Part of a People Analytics portfolio covering workforce planning, recruiting, compensation equity, and retention. Companion repositories:
 
 - [workforce-planning-demand-forecast](https://github.com/Jott2121/workforce-planning-demand-forecast) — strategic workforce planning and recruiter capacity
-- [hiring-funnel-analytics](https://github.com/Jott2121/hiring-funnel-analytics) — recruiting funnel performance and bias monitoring
-- [hr-attrition-predictor](https://github.com/Jott2121/hr-attrition-predictor) — responsible retention risk modeling
+- [funnel-disparity-stats](https://github.com/Jott2121/funnel-disparity-stats) — recruiting funnel performance and bias monitoring
+- [attrition-risk-ml](https://github.com/Jott2121/attrition-risk-ml) — responsible retention risk modeling
 
 Maintainer: [Jeff Otterson](https://github.com/Jott2121). Libraries: `statsmodels`, `pandas`, `streamlit`, `plotly`. MIT licensed.
