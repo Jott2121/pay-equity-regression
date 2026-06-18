@@ -1,0 +1,7 @@
+[run]
+relative_files = true
+source =
+    src
+omit =
+    src/visualize.py
+    src/export_tableau.py

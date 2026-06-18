@@ -1,6 +1,8 @@
 # Pay Equity Regression — OLS Compensation Audit
 
 ![CI](https://github.com/Jott2121/pay-equity-regression/actions/workflows/ci.yml/badge.svg)
+![CodeQL](https://github.com/Jott2121/pay-equity-regression/actions/workflows/codeql.yml/badge.svg)
+![Coverage](https://raw.githubusercontent.com/Jott2121/pay-equity-regression/python-coverage-comment-action-data/badge.svg)
 
 A two-stage OLS regression that isolates the *unexplained* portion of a pay gap: model log(salary) on legitimate drivers (level, function, location, tenure, experience, performance, management status), then test whether the residuals vary by protected class. Built with `statsmodels`, validated against known ground truth via simulation.
 
@@ -285,3 +287,13 @@ Part of a People Analytics portfolio covering workforce planning, recruiting, co
 - [attrition-risk-ml](https://github.com/Jott2121/attrition-risk-ml) — responsible retention risk modeling
 
 Maintainer: [Jeff Otterson](https://github.com/Jott2121). Libraries: `statsmodels`, `pandas`, `streamlit`, `plotly`. MIT licensed.
+
+## Reliability & security
+
+This repo is gated like production:
+
+- **Coverage-gated tests** — the analytical core (`src/`, excluding plotting/export glue) is unit-tested and the build fails if coverage drops below the floor (currently 89% on the core).
+- **CodeQL** — `security-extended` static analysis on every push, PR, and weekly; findings surface in the Security tab.
+- **Pinned supply chain** — GitHub Actions pinned to commit SHAs, kept current by Dependabot.
+- **Protected `main`** — required checks must pass before a merge; private vulnerability reporting is enabled.
+- **Disclosure policy** — see [SECURITY.md](SECURITY.md).
